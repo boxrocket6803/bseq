@@ -1,4 +1,5 @@
 using Datamodel;
+using System.Numerics;
 
 [Convert.Association(["dmx"])]
 public class ValveDMX : Convert.Source {
@@ -7,11 +8,21 @@ public class ValveDMX : Convert.Source {
 		var dmx = Datamodel.Datamodel.Load(path);
 		LoadSkeleton(dmx.Root, s);
 		LoadAnimation(dmx.Root, s);
-		return base.Read(path);
+		return s;
 	}
 
 	private void LoadSkeleton(Element dmx, Sequence s) {
-		//1314
+		void Unfold(string parent, ElementArray bones) {
+			foreach (var bone in bones) {
+				var t = bone.Get<Element>("transform");
+				s.Skeleton.Add(bone.Name, new() {
+					Parent = parent,
+					Local = new() {Position = t.Get<Vector3>("position"), Rotation = t.Get<Quaternion>("orientation")}
+				});
+				Unfold(bone.Name, bone.Get<ElementArray>("children"));
+			}
+		}
+		Unfold(null, dmx.Get<Element>("skeleton").Get<ElementArray>("children"));
 	}
 	private void LoadAnimation(Element dmx, Sequence s) {
 		var animation = dmx.Get<Element>("animationList").Get<ElementArray>("animations").First();
@@ -26,7 +37,7 @@ public class ValveDMX : Convert.Source {
 			var toElement = channel.Get<Element>("toElement");
 			if (toElement is null)
 				continue;
-			Console.WriteLine(toElement.ID);
+			//Console.WriteLine(toElement.ID);
 			//1655
 		}
 	}

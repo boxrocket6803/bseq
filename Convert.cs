@@ -1,3 +1,4 @@
+using System.Numerics;
 using System.Reflection;
 
 public class Convert {
@@ -43,21 +44,74 @@ public class Convert {
 			Console.WriteLine($"could not find converter source for '{input.Split('.').Last()}'");
 			return;
 		}
-		using var f = new BinaryWriter(File.OpenWrite($"{input.Split('.').First()}.btex"));
+		using var f = new BinaryWriter(File.OpenWrite($"{input.Split('.').First()}.bseq"));
 		Write(f, inst.Read(input));
 	}
 
 	private static void Write(BinaryWriter f, Sequence s) {
-		if (s is null)
-			return;
+		HashSet<Vector3> vec3h = new();
+		HashSet<Quaternion> quath = new();
+		foreach (var bone in s.Skeleton.Values) {
+			vec3h.Add(bone.Local.Position);
+			quath.Add(bone.Local.Rotation);
+		}
+		foreach (var track in s.Tracks.Values) {
+			foreach (var key in track) {
+				vec3h.Add(key.Position);
+				quath.Add(key.Rotation);
+			}
+		}
+		Dictionary<Vector3,int> vec3 = new();
+		foreach (var val in vec3h)
+			vec3.Add(val, vec3.Count);
+		Dictionary<Quaternion,int> quat = new();
+		foreach (var val in quath)
+			quat.Add(val, quat.Count);
+
 		f.Write("bseq".ToArray());
-		f.Write(s.Frames);
+		byte flags = 0;
+		if (vec3.Count > byte.MaxValue || quat.Count > byte.MaxValue)
+			flags |= (byte)Sequence.Flags.Index16;
+		if (vec3.Count > ushort.MaxValue || quat.Count > ushort.MaxValue)
+			flags |= (byte)Sequence.Flags.Index16;
+		f.Write(flags); //flags
 		f.Write(s.Rate);
-		f.Write(false); //scale
-		//bone count, names
-		//vec3
-		//vec4
-		//bind
+		f.Write(s.Frames);
+		//values
+		void WriteIndex(int i) {
+			if ((flags & (byte)Sequence.Flags.Index36) != 0)
+				f.Write((uint)i);
+			else if ((flags & (byte)Sequence.Flags.Index16) != 0)
+				f.Write((ushort)i);
+			else
+				f.Write((byte)i);
+		}
+		WriteIndex(vec3.Count);
+		foreach (var val in vec3.Keys) {
+			f.Write(val.X);
+			f.Write(val.Y);
+			f.Write(val.Z);
+		}
+		WriteIndex(quat.Count);
+		foreach (var val in quat.Keys) {
+			f.Write(val.X);
+			f.Write(val.Y);
+			f.Write(val.Z);
+			f.Write(val.W);
+		}
+		//bones
+		f.Write((ushort)s.Skeleton.Count);
+		Dictionary<string,ushort> indicies = new();
+		foreach (var bone in s.Skeleton) {
+			indicies.Add(bone.Key, (ushort)indicies.Count);
+			f.Write(bone.Key);
+			if (bone.Value.Parent is not null)
+				f.Write(indicies[bone.Value.Parent]);
+			else
+				f.Write(ushort.MaxValue);
+			WriteIndex(vec3[bone.Value.Local.Position]);
+			WriteIndex(quat[bone.Value.Local.Rotation]);
+		}
 		//anim
 	}
 }
