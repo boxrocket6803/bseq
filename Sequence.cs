@@ -44,6 +44,7 @@ public partial class Sequence {
 			quat[i] = new(f.ReadSingle(), f.ReadSingle(), f.ReadSingle(), f.ReadSingle());
 		//skeleton
 		var bones = new string[f.ReadUInt16()];
+		var abones = new bool[bones.Length];
 		for (int i = 0; i < bones.Length; i++) {
 			Bone b = new();
 			bones[i] = f.ReadString();
@@ -51,6 +52,10 @@ public partial class Sequence {
 			if (parent != ushort.MaxValue)
 				b.Parent = bones[parent];
 			b.Local = new(vec3[ReadIndex()], quat[ReadIndex()]);
+			if ((flags & (byte)Flags.Animation) != 0)
+				abones[i] = f.ReadBoolean();
+			else
+				abones[i] = false;
 			s.Skeleton.Add(bones[i], b);
 		}
 		return s;

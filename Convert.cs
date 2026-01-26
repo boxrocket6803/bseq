@@ -74,6 +74,8 @@ public class Convert {
 			flags |= (byte)Sequence.Flags.Index16;
 		if (vec3.Count > ushort.MaxValue || quat.Count > ushort.MaxValue)
 			flags |= (byte)Sequence.Flags.Index16;
+		if (s.Tracks.Any())
+			flags |= (byte)Sequence.Flags.Animation;
 		f.Write(flags); //flags
 		f.Write(s.Rate);
 		f.Write(s.Frames);
@@ -111,7 +113,18 @@ public class Convert {
 				f.Write(ushort.MaxValue);
 			WriteIndex(vec3[bone.Value.Local.Position]);
 			WriteIndex(quat[bone.Value.Local.Rotation]);
+			if ((flags & (byte)Sequence.Flags.Animation) != 0)
+				f.Write(s.Tracks.ContainsKey(bone.Key));
+			Console.WriteLine(s.Tracks.ContainsKey(bone.Key));
 		}
 		//anim
+		foreach (var bone in s.Skeleton.Keys) {
+			if (!s.Tracks.TryGetValue(bone, out var track))
+				continue;
+			foreach (var key in track) {
+				WriteIndex(vec3[key.Position]);
+				WriteIndex(quat[key.Rotation]);
+			}
+		}
 	}
 }
