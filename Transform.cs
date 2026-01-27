@@ -8,6 +8,14 @@ public struct Transform {
 	public Vector3 Position;
 	public Quaternion Rotation;
 
+	public static Transform Zero => new(Vector3.Zero, Quaternion.Identity);
+	public static Transform Lerp(Transform a, Transform b, float t, bool clamp) {
+		return new Transform {
+			Position = Vector3.Lerp( a.Position, b.Position, t ),
+			Rotation = Quaternion.Slerp( a.Rotation, b.Rotation, t ),
+		};
+	}
+
 	public override bool Equals(object obj) {
 		var t = obj as Transform?;
 		if (t is null)

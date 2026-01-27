@@ -115,15 +115,17 @@ public class Convert {
 			WriteIndex(quat[bone.Value.Local.Rotation]);
 			if ((flags & (byte)Sequence.Flags.Animation) != 0)
 				f.Write(s.Tracks.ContainsKey(bone.Key));
-			Console.WriteLine(s.Tracks.ContainsKey(bone.Key));
 		}
 		//anim
-		foreach (var bone in s.Skeleton.Keys) {
-			if (!s.Tracks.TryGetValue(bone, out var track))
-				continue;
-			foreach (var key in track) {
-				WriteIndex(vec3[key.Position]);
-				WriteIndex(quat[key.Rotation]);
+		if ((flags & (byte)Sequence.Flags.Animation) != 0) {
+			foreach (var bone in s.Skeleton.Keys) {
+				if (!s.Tracks.TryGetValue(bone, out var track))
+					continue;
+				f.Write(track.Length == 2);
+				foreach (var key in track) {
+					WriteIndex(vec3[key.Position]);
+					WriteIndex(quat[key.Rotation]);
+				}
 			}
 		}
 	}

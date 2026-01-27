@@ -43,6 +43,7 @@ public class ValveDMX : Convert.Source {
 		Console.WriteLine($"Duration: {end}");
 		s.Frames = (uint)Math.Round(end * s.Rate);
 		Console.WriteLine($"Frames: {s.Frames}");
+		HashSet<string> longbones = new();
 		foreach (var channel in animation.Get<ElementArray>("channels")) {
 			var toElement = channel.Get<Element>("toElement");
 			if (toElement is null)
@@ -56,28 +57,50 @@ public class ValveDMX : Convert.Source {
 				track = new Transform[s.Frames];
 			var key = 1;
 			for (var i = 0; i < track.Length; i++) {
-				var time = i / (float)s.Rate;
-				time -= start;
-				if (times[key].TotalSeconds < time && key + 1 < times.Count)
-					key++;
-				var delta = Remap(time, (float)times[key - 1].TotalSeconds, (float)times[key].TotalSeconds);
 				var transform = track[i];
-				switch (log.ClassName) {
-					case "DmeVector3LogLayer":
-						var vec3 = values as Vector3Array;
-						transform.Position = Vector3.Lerp(vec3[key-1], vec3[key], delta);
-						break;
-					case "DmeQuaternionLogLayer":
-						var quat = values as QuaternionArray;
-						transform.Rotation = Quaternion.Slerp(quat[key-1], quat[key], delta);
-						break;
-					default:
-						Console.WriteLine(log.ClassName);
-						break;
+				if (times.Count > 1) {
+					var time = i / (float)s.Rate;
+					time -= start;
+					while (times[key].TotalSeconds <= time && key + 1 < times.Count)
+						key++;
+					var delta = Math.Clamp(Remap(time, (float)times[key - 1].TotalSeconds, (float)times[key].TotalSeconds), 0f, 1f);
+					switch (log.ClassName) {
+						case "DmeVector3LogLayer":
+							var vec3 = values as Vector3Array;
+							if (vec3.Count > 2)
+								longbones.Add(bone);
+							transform.Position = Vector3.Lerp(vec3[key-1], vec3[key], delta);
+							break;
+						case "DmeQuaternionLogLayer":
+							var quat = values as QuaternionArray;
+							if (quat.Count > 2)
+								longbones.Add(bone);
+							transform.Rotation = Quaternion.Slerp(quat[key-1], quat[key], delta);
+							break;
+						default:
+							Console.WriteLine(log.ClassName);
+							break;
+					}
+				} else {
+					switch (log.ClassName) {
+						case "DmeVector3LogLayer":
+							transform.Position = (values as Vector3Array)[0];
+							break;
+						case "DmeQuaternionLogLayer":
+							transform.Rotation = (values as QuaternionArray)[0];
+							break;
+						default:
+							Console.WriteLine(log.ClassName);
+							break;
+					}
 				}
 				track[i] = transform;
 			}
 			s.Tracks[bone] = track;
+		}
+		foreach (var track in s.Tracks) {
+			if (!longbones.Contains(track.Key))
+				s.Tracks[track.Key] = [track.Value.First(), track.Value.Last()];
 		}
 	}
 }
