@@ -8,6 +8,7 @@ public partial class Sequence {
 		Animation	= 1 << 3,
 		RootMotion	= 1 << 4,
 		Events		= 1 << 5,
+		Floats		= 1 << 6,
 	}
 	public struct Bone {
 		public Transform Local;
