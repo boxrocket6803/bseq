@@ -44,6 +44,8 @@ public class Convert {
 			Console.WriteLine($"could not find converter source for '{input.Split('.').Last()}'");
 			return;
 		}
+		if (File.Exists($"{input.Split('.').First()}.bseq"))
+			File.Delete($"{input.Split('.').First()}.bseq");
 		using var f = new BinaryWriter(File.OpenWrite($"{input.Split('.').First()}.bseq"));
 		Write(f, inst.Read(input));
 	}

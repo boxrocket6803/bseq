@@ -19,6 +19,7 @@ public class ValveDMX : Convert.Source {
 	private static void Load(Element dmx, Sequence s) {
 		//skeleton
 		Dictionary<Guid,string> bonemap = [];
+		HashSet<Guid> rootbones = [];
 		if (dmx.ContainsKey("skeleton")) {
 			var rt = dmx.Get<Element>("skeleton").Get<Element>("transform");
 			bonemap.Add(rt.ID, "root_transform");
@@ -26,6 +27,8 @@ public class ValveDMX : Convert.Source {
 				Parent = null,
 				Local = new() {Position = rt.Get<Vector3>("position"), Rotation = rt.Get<Quaternion>("orientation")}
 			});
+			if (dmx.Get<Element>("skeleton").Get<ElementArray>("children").Count > 0)
+				rootbones.Add(rt.ID);
 			void Unfold(string parent, ElementArray bones) {
 				foreach (var bone in bones) {
 					var t = bone.Get<Element>("transform");
@@ -54,6 +57,7 @@ public class ValveDMX : Convert.Source {
 		var end = 0f;
 		foreach (var channel in animation.Get<ElementArray>("channels"))
 			end = MathF.Max(end, (float)channel.Get<Element>("log").Get<ElementArray>("layers").First().Get<TimeSpanArray>("times").Last().TotalSeconds);
+		end += start;
 		if (dmx.ContainsKey("exportTags")) {
 			var range = dmx.Get<Element>("exportTags").Get<string>("timeRange").Split('-').ToList();
 			if (string.IsNullOrEmpty(range[0])) { //fuck you valve
@@ -64,10 +68,9 @@ public class ValveDMX : Convert.Source {
 				range.RemoveAt(1);
 				range[1] = $"-{range[1]}";
 			}
-			start = MathF.Max(start, float.Parse(range[0]));
-			end = MathF.Min(end, float.Parse(range[1]));
+			start -= float.Parse(range[0]);
+			end = float.Parse(range[1]) - float.Parse(range[0]);
 		}
-		end += start;
 		Console.WriteLine($"Duration: {end}");
 		s.Frames = (uint)Math.Round(end * s.Rate);
 		Console.WriteLine($"Frames: {s.Frames}");
@@ -124,6 +127,8 @@ public class ValveDMX : Convert.Source {
 							break;
 					}
 				}
+				if (rootbones.Contains(toElement.ID) && values is QuaternionArray)
+					transform.Rotation = new Quaternion(0.5f,0.5f,0.5f,0.5f) * transform.Rotation;
 				track[i] = transform;
 			}
 			s.Tracks[bone] = track;
