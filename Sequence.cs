@@ -8,7 +8,6 @@ public partial class Sequence {
 		Animation	= 1 << 3,
 		RootMotion	= 1 << 4,
 		Events		= 1 << 5,
-		Floats		= 1 << 6,
 	}
 	public struct Bone {
 		public Transform Local;
@@ -29,6 +28,7 @@ public partial class Sequence {
 	public Dictionary<string, Bone> Skeleton = [];
 	public Dictionary<string, Transform[]> Tracks = [];
 	public Dictionary<int, Event> Events = [];
+	public float Length => Frames / (float)Rate;
 
 	public Transform? Bind(string bone) {
 		if (Skeleton.TryGetValue(bone, out var b))
@@ -109,7 +109,7 @@ public partial class Sequence {
 				if (!abones[i])
 					continue;
 				var track = new Transform[f.ReadBoolean() ? 2 : s.Frames];
-				for (int i2 = 0; i2 < track.Length; i++)
+				for (int i2 = 0; i2 < track.Length; i2++)
 					track[i2] = new(vec3[ReadIndex()], quat[ReadIndex()]);
 				s.Tracks.Add(bones[i], track);
 			}
