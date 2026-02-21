@@ -59,6 +59,19 @@ public partial class Sequence {
 			return Transform.Zero;
 		return Transform.Lerp(track[0], track[1], frame / (float)Frames, false);
 	}
+	public List<string> EventsInRange(int start, int end) {
+		if (Events.Count == 0)
+			return null;
+		List<string> events = null;
+		for (int i = start; i <= end; i++) {
+			if (!Events.TryGetValue(i, out var evts))
+				continue;
+			events ??= [];
+			foreach (var evt in evts)
+				events.Add(evt);
+		}
+		return events;
+	}
 
 	public static Sequence Load(Stream f) {
 		if (f is null)
