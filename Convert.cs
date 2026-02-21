@@ -51,8 +51,8 @@ public class Convert {
 	}
 
 	private static void Write(BinaryWriter f, Sequence s) {
-		HashSet<Vector3> vec3h = new();
-		HashSet<Quaternion> quath = new();
+		HashSet<Vector3> vec3h = [];
+		HashSet<Quaternion> quath = [];
 		foreach (var bone in s.Skeleton.Values) {
 			vec3h.Add(bone.Local.Position);
 			quath.Add(bone.Local.Rotation);
@@ -63,10 +63,10 @@ public class Convert {
 				quath.Add(key.Rotation);
 			}
 		}
-		Dictionary<Vector3,int> vec3 = new();
+		Dictionary<Vector3,int> vec3 = [];
 		foreach (var val in vec3h)
 			vec3.Add(val, vec3.Count);
-		Dictionary<Quaternion,int> quat = new();
+		Dictionary<Quaternion,int> quat = [];
 		foreach (var val in quath)
 			quat.Add(val, quat.Count);
 
@@ -76,11 +76,23 @@ public class Convert {
 			flags |= (byte)Sequence.Flags.Index16;
 		if (vec3.Count > ushort.MaxValue || quat.Count > ushort.MaxValue)
 			flags |= (byte)Sequence.Flags.Index16;
-		if (s.Tracks.Any())
+		if (s.Tracks.Count != 0)
 			flags |= (byte)Sequence.Flags.Animation;
+		if (s.Events.Count != 0)
+			flags |= (byte)Sequence.Flags.Events;
 		f.Write(flags); //flags
 		f.Write(s.Rate);
 		f.Write(s.Frames);
+		//events
+		if ((flags & (byte)Sequence.Flags.Events) != 0) {
+			f.Write((ushort)s.Events.Count);
+			foreach (var frame in s.Events) {
+				f.Write((uint)frame.Key);
+				f.Write((byte)frame.Value.Count);
+				foreach (var evt in frame.Value)
+					f.Write(evt);
+			}
+		}
 		//values
 		void WriteIndex(int i) {
 			if ((flags & (byte)Sequence.Flags.Index36) != 0)
@@ -105,7 +117,7 @@ public class Convert {
 		}
 		//bones
 		f.Write((ushort)s.Skeleton.Count);
-		Dictionary<string,ushort> indicies = new();
+		Dictionary<string,ushort> indicies = [];
 		foreach (var bone in s.Skeleton) {
 			indicies.Add(bone.Key, (ushort)indicies.Count);
 			f.Write(bone.Key);

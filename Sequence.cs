@@ -13,10 +13,6 @@ public partial class Sequence {
 		public Transform Local;
 		public string Parent;
 	}
-	public struct Event {
-		public string Name;
-		public uint Data;
-	}
 	public struct Pair(int lo, int hi, float delta) {
 		public int Lo = lo;
 		public int Hi = hi;
@@ -27,7 +23,7 @@ public partial class Sequence {
 	public byte Rate;
 	public Dictionary<string, Bone> Skeleton = [];
 	public Dictionary<string, Transform[]> Tracks = [];
-	public Dictionary<int, Event> Events = [];
+	public Dictionary<int, HashSet<string>> Events = [];
 	public float Length => Frames / (float)Rate;
 
 	public Transform? Bind(string bone) {
@@ -75,6 +71,18 @@ public partial class Sequence {
 		var flags = f.ReadByte();
 		s.Rate = f.ReadByte();
 		s.Frames = f.ReadUInt32();
+		//events
+		if ((flags & (byte)Flags.Events) != 0) {
+			var evtcount = f.ReadUInt16();
+			for (int i = 0; i < evtcount; i++) {
+				var frame = f.ReadUInt32();
+				var framecount = f.ReadByte();
+				HashSet<string> evts = new(framecount);
+				for (int j = 0; j < framecount; j++)
+					evts.Add(f.ReadString());
+				s.Events[(int)frame] = evts;
+			}
+		}
 		//values
 		uint ReadIndex() {
 			if ((flags & (byte)Flags.Index36) != 0) return f.ReadUInt32();

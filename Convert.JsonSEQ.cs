@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 
 [Convert.Association(["seq"])]
@@ -44,6 +45,10 @@ public class JsonSEQ : Convert.Source {
 			for (int i = 0; i < track.Length; i++)
 				track[i] = GetTransform((string)seq["Frames"][i][(int)bone.Value.AsValue()].AsValue());
 			s.Tracks.Add(bone.Key, track);
+		}
+		if (seq.ContainsKey("Events")) {
+			s.Events = seq["Events"].Deserialize<Dictionary<int,HashSet<string>>>();
+			Console.WriteLine($"Events: {s.Events.Sum((k) => k.Value.Count)}");
 		}
 	}
 }
