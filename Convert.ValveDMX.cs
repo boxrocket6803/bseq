@@ -1,3 +1,5 @@
+namespace bseq;
+
 using Datamodel;
 using System.Numerics;
 
@@ -5,7 +7,7 @@ using System.Numerics;
 public class ValveDMX : Convert.Source {
 	public override Sequence Read(string path) {
 		Sequence s = new();
-		var dmx = Datamodel.Datamodel.Load(path);
+		var dmx = Datamodel.Load(path);
 		Load(dmx.Root, s);
 		return s;
 	}

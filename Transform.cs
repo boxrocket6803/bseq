@@ -26,4 +26,5 @@ public struct Transform {
 			return false;
 		return true;
 	}
+	public override int GetHashCode() => HashCode.Combine(Position, Rotation);
 }

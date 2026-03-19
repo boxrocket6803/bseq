@@ -1,4 +1,6 @@
-﻿using System.Numerics;
+﻿namespace bseq;
+
+using System.Numerics;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 

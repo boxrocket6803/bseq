@@ -1,3 +1,5 @@
+namespace bseq;
+
 using System.Numerics;
 using System.Reflection;
 
