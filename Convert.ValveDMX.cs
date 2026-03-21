@@ -13,7 +13,7 @@ public class ValveDMX : Convert.Source {
 	}
 
 	public static float Remap(float value, float oldLow, float oldHigh) {
-		if ( MathF.Abs( oldHigh - oldLow ) < 0.0001f )
+		if (MathF.Abs(oldHigh - oldLow) < 0.0001f)
 			return 0;
 		return (value - oldLow) / (oldHigh - oldLow);
 	}

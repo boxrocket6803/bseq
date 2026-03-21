@@ -12,12 +12,26 @@ public class Convert {
 		public virtual Sequence Read(string path) {return null;}
 	}
 
+	public static bool Supports(string file) {
+		foreach (var type in Assembly.GetAssembly(typeof(Source)).GetTypes()) {
+			if (!type.IsAssignableTo(typeof(Source)))
+				continue;
+			var assoc = type.GetCustomAttribute<AssociationAttribute>();
+			if (assoc is null)
+				continue;
+			if (!assoc.Types.Contains(file.Split('.').Last()))
+				continue;
+			return true;
+		}
+		return false;
+	}
 	public static void Main(string[] args) {
 		List<string> argacc = [.. args];
 		Console.WriteLine("-- bseq converter utility --");
-		if (argacc.Count == 0)
+		if (argacc.Count == 0) {
 			Console.WriteLine("cmd args");
 			Console.WriteLine(" <input file>");
+		}
 		while (!File.Exists(argacc.ElementAtOrDefault(0))) {
 			if (argacc.Count > 0) {
 				Console.WriteLine($"{argacc[0]} is not a valid file");
@@ -77,12 +91,12 @@ public class Convert {
 		if (vec3.Count > byte.MaxValue || quat.Count > byte.MaxValue)
 			flags |= (byte)Sequence.Flags.Index16;
 		if (vec3.Count > ushort.MaxValue || quat.Count > ushort.MaxValue)
-			flags |= (byte)Sequence.Flags.Index16;
+			flags |= (byte)Sequence.Flags.Index32;
 		if (s.Tracks.Count != 0)
 			flags |= (byte)Sequence.Flags.Animation;
 		if (s.Events.Count != 0)
 			flags |= (byte)Sequence.Flags.Events;
-		f.Write(flags); //flags
+		f.Write(flags);
 		f.Write(s.Rate);
 		f.Write(s.Frames);
 		//events
@@ -97,7 +111,7 @@ public class Convert {
 		}
 		//values
 		void WriteIndex(int i) {
-			if ((flags & (byte)Sequence.Flags.Index36) != 0)
+			if ((flags & (byte)Sequence.Flags.Index32) != 0)
 				f.Write((uint)i);
 			else if ((flags & (byte)Sequence.Flags.Index16) != 0)
 				f.Write((ushort)i);

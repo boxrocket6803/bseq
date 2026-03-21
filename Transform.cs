@@ -16,7 +16,7 @@ public struct Transform {
 		};
 	}
 
-	public override bool Equals(object obj) {
+	public override readonly bool Equals(object obj) {
 		var t = obj as Transform?;
 		if (t is null)
 			return false;
@@ -27,4 +27,6 @@ public struct Transform {
 		return true;
 	}
 	public override int GetHashCode() => HashCode.Combine(Position, Rotation);
+	public static bool operator ==(Transform left, Transform right) => left.Equals(right);
+	public static bool operator !=(Transform left, Transform right) => !(left == right);
 }

@@ -3,7 +3,7 @@ using System.Numerics;
 public partial class Sequence {
 	public enum Flags {
 		Index16		= 1 << 0,
-		Index36		= 1 << 1,
+		Index32		= 1 << 1,
 		Scale		= 1 << 2,
 		Animation	= 1 << 3,
 		RootMotion	= 1 << 4,
@@ -98,7 +98,7 @@ public partial class Sequence {
 		}
 		//values
 		uint ReadIndex() {
-			if ((flags & (byte)Flags.Index36) != 0) return f.ReadUInt32();
+			if ((flags & (byte)Flags.Index32) != 0) return f.ReadUInt32();
 			if ((flags & (byte)Flags.Index16) != 0) return f.ReadUInt16();
 			return f.ReadByte();
 		}
