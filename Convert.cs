@@ -25,7 +25,8 @@ public class Convert {
 		}
 		return false;
 	}
-	public static void Main(string[] args) {
+	public static void Main(string[] args) => Run(args);
+	public static string Run(string[] args) {
 		List<string> argacc = [.. args];
 		Console.WriteLine("-- bseq converter utility --");
 		if (argacc.Count == 0) {
@@ -40,9 +41,9 @@ public class Convert {
 			Console.Write("input file: ");
 			argacc.Insert(0, Console.ReadLine().Trim());
 		}
-		Write(argacc[0]);
+		return Write(argacc[0]);
 	}
-	public static void Write(string input) {
+	public static string Write(string input) {
 		Source inst = null;
 		foreach (var type in Assembly.GetAssembly(typeof(Source)).GetTypes()) {
 			if (!type.IsAssignableTo(typeof(Source)))
@@ -58,12 +59,14 @@ public class Convert {
 		}
 		if (inst is null) {
 			Console.WriteLine($"could not find converter source for '{input.Split('.').Last()}'");
-			return;
+			return null;
 		}
-		if (File.Exists($"{input.Split('.').First()}.bseq"))
-			File.Delete($"{input.Split('.').First()}.bseq");
-		using var f = new BinaryWriter(File.OpenWrite($"{input.Split('.').First()}.bseq"));
+		var path = $"{input.Split('.').First()}.bseq";
+		if (File.Exists(path))
+			File.Delete(path);
+		using var f = new BinaryWriter(File.OpenWrite(path));
 		Write(f, inst.Read(input));
+		return path;
 	}
 
 	private static void Write(BinaryWriter f, Sequence s) {
