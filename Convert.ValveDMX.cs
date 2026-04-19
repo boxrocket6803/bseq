@@ -55,7 +55,9 @@ public class ValveDMX : Convert.Source {
 		var animation = dmx.Get<Element>("animationList").Get<ElementArray>("animations").First();
 		s.Rate = (byte)animation.Get<float>("frameRate");
 		Console.WriteLine($"Rate: {s.Rate}");
-		var start = (float)animation.Get<Element>("timeFrame").Get<TimeSpan>("start").TotalSeconds;
+		var start = 0f;
+		if (animation.Get<Element>("timeFrame").TryGetValue("start", out var span))
+			start = (float)((TimeSpan)span).TotalSeconds;
 		var end = 0f;
 		foreach (var channel in animation.Get<ElementArray>("channels"))
 			end = MathF.Max(end, (float)channel.Get<Element>("log").Get<ElementArray>("layers").First().Get<TimeSpanArray>("times").Last().TotalSeconds);
