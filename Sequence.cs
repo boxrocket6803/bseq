@@ -1,3 +1,4 @@
+namespace bseq;
 using System.Numerics;
 
 public partial class Sequence {

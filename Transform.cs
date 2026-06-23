@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿namespace bseq;
+using System.Numerics;
 
 public struct Transform {
 	public Transform(Vector3 pos, Quaternion rot) {
