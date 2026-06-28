@@ -25,6 +25,18 @@ public class Convert {
 		}
 		return false;
 	}
+	public static void ListSupported() {
+		Console.WriteLine("supported types for bseq convert");
+		foreach (var type in Assembly.GetAssembly(typeof(Source)).GetTypes()) {
+			if (!type.IsAssignableTo(typeof(Source)))
+				continue;
+			var assoc = type.GetCustomAttribute<AssociationAttribute>();
+			if (assoc is null)
+				continue;
+			foreach (var ext in assoc.Types)
+				Console.WriteLine($" .{ext}");
+		}
+	}
 	public static void Main(string[] args) => Run(args);
 	public static string Run(string[] args) {
 		List<string> argacc = [.. args];
