@@ -88,6 +88,12 @@ public class Convert {
 			vec3h.Add(bone.Local.Position);
 			quath.Add(bone.Local.Rotation);
 		}
+		if (s.RootMotion is not null) {
+			foreach (var key in s.RootMotion) {
+				vec3h.Add(key.Position);
+				quath.Add(key.Rotation);
+			}
+		}
 		foreach (var track in s.Tracks.Values) {
 			foreach (var key in track) {
 				vec3h.Add(key.Position);
@@ -111,6 +117,8 @@ public class Convert {
 			flags |= (byte)Sequence.Flags.Animation;
 		if (s.Events.Count != 0)
 			flags |= (byte)Sequence.Flags.Events;
+		if (s.RootMotion is not null)
+			flags |= (byte)Sequence.Flags.RootMotion;
 		f.Write(flags);
 		f.Write(s.Rate);
 		f.Write(s.Frames);
@@ -160,6 +168,13 @@ public class Convert {
 			WriteIndex(quat[bone.Value.Local.Rotation]);
 			if ((flags & (byte)Sequence.Flags.Animation) != 0)
 				f.Write(s.Tracks.ContainsKey(bone.Key));
+		}
+		//root motion
+		if ((flags & (byte)Sequence.Flags.RootMotion) != 0) {
+			foreach (var key in s.RootMotion) {
+				WriteIndex(vec3[key.Position]);
+				WriteIndex(quat[key.Rotation]);
+			}
 		}
 		//anim
 		if ((flags & (byte)Sequence.Flags.Animation) != 0) {

@@ -22,6 +22,7 @@ public partial class Sequence {
 
 	public uint Frames;
 	public byte Rate;
+	public Transform[] RootMotion = null;
 	public Dictionary<string, Bone> Skeleton = [];
 	public Dictionary<string, Transform[]> Tracks = [];
 	public Dictionary<int, HashSet<string>> Events = [];
@@ -41,6 +42,7 @@ public partial class Sequence {
 		var delta = playhead - lo;
 		return new(lo, hi, delta);
 	}
+
 	public Transform? Sample(string bone, int frame) {
 		if (!Tracks.TryGetValue(bone, out var track))
 			return Bind(bone);
@@ -51,6 +53,18 @@ public partial class Sequence {
 			return Bind(bone);
 		return Transform.Lerp(Sample(track, p.Lo), Sample(track, p.Hi), p.Delta, false);
 	}
+
+	public Transform SampleRoot(int frame) {
+		if (RootMotion is null)
+			return Transform.Zero;
+		return Sample(RootMotion, frame);
+	}
+	public Transform SampleRoot(Pair p) {
+		if (RootMotion is null)
+			return Transform.Zero;
+		return Transform.Lerp(Sample(RootMotion, p.Lo), Sample(RootMotion, p.Hi), p.Delta, false);
+	}
+
 	public Transform Sample(Transform[] track, int frame) {
 		if (track.Length > 2)
 			return track[frame];
@@ -60,6 +74,7 @@ public partial class Sequence {
 			return Transform.Zero;
 		return Transform.Lerp(track[0], track[1], frame / (float)Frames, false);
 	}
+
 	public List<string> EventsInRange(int start, int end) {
 		if (Events.Count == 0)
 			return null;
@@ -124,6 +139,12 @@ public partial class Sequence {
 			else
 				abones[i] = false;
 			s.Skeleton.Add(bones[i], b);
+		}
+		//root motion
+		if ((flags & (byte)Flags.RootMotion) != 0) {
+			s.RootMotion = new Transform[s.Frames];
+			for (int i = 0; i < s.RootMotion.Length; i++)
+				s.RootMotion[i] = new(vec3[ReadIndex()], quat[ReadIndex()]);
 		}
 		//anim
 		if ((flags & (byte)Flags.Animation) != 0) {
