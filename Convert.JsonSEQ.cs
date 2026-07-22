@@ -14,15 +14,15 @@ public class JsonSEQ : Convert.Source {
 	}
 
 	private static void Load(JsonObject seq, Sequence s) {
-		Vector3 Pos(string str) {
-			var split = str.Split(',');
-			return new(float.Parse(split[0]), float.Parse(split[1]), float.Parse(split[2]));
-		}
-		Quaternion Rot(string str) {
-			var split = str.Split(',');
-			return new(float.Parse(split[0]), float.Parse(split[1]), float.Parse(split[2]), float.Parse(split[3]));
-		}
 		Transform GetTransform(string key) {
+			Vector3 Pos(string str) {
+				var split = str.Split(',');
+				return new(float.Parse(split[0]), float.Parse(split[1]), float.Parse(split[2]));
+			}
+			Quaternion Rot(string str) {
+				var split = str.Split(',');
+				return new(float.Parse(split[0]), float.Parse(split[1]), float.Parse(split[2]), float.Parse(split[3]));
+			}
 			var split = key.Split(',');
 			var poskey = int.Parse(split[0]) - 1;
 			var pos = Vector3.Zero;
@@ -52,7 +52,7 @@ public class JsonSEQ : Convert.Source {
 		if (seq.ContainsKey("RootMotion")) {
 			s.RootMotion = new Transform[s.Frames];
 			for (int i = 0; i < s.RootMotion.Length; i++)
-				s.RootMotion[i] = new(Pos((string)seq["RootMotion"][i]), Quaternion.Identity);
+				s.RootMotion[i] = GetTransform((string)seq["RootMotion"][i]);
 		}
 		if (seq.ContainsKey("Events")) {
 			s.Events = seq["Events"].Deserialize<Dictionary<int,HashSet<string>>>();

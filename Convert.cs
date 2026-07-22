@@ -2,6 +2,7 @@ namespace bseq;
 
 using System.Numerics;
 using System.Reflection;
+using System.Threading.Tasks.Dataflow;
 
 public class Convert {
 	[AttributeUsage(AttributeTargets.Class)]
@@ -117,7 +118,7 @@ public class Convert {
 			flags |= (byte)Sequence.Flags.Animation;
 		if (s.Events.Count != 0)
 			flags |= (byte)Sequence.Flags.Events;
-		if (s.RootMotion is not null)
+		if (s.RootMotion is not null && s.RootMotion.Any((rt) => rt != Transform.Zero))
 			flags |= (byte)Sequence.Flags.RootMotion;
 		f.Write(flags);
 		f.Write(s.Rate);
