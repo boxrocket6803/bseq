@@ -49,7 +49,7 @@ public class JsonSEQ : Convert.Source {
 				track[i] = GetTransform((string)seq["Frames"][i][(int)bone.Value.AsValue()].AsValue());
 			s.Tracks.Add(bone.Key, track);
 		}
-		if (seq.ContainsKey("RootMotion")) {
+		if (seq.ContainsKey("RootMotion") && seq["RootMotion"].AsArray().Any()) {
 			s.RootMotion = new Transform[s.Frames];
 			for (int i = 0; i < s.RootMotion.Length; i++)
 				s.RootMotion[i] = GetTransform((string)seq["RootMotion"][i]);
